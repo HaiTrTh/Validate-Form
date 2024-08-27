@@ -3,42 +3,69 @@
 // Object `Validaor`
 function Validator(options){
 
-  var selectorRules = {};
+  //  var selectorRules = {};
   // validate function
+  var selectorRules = {};
   function validate(inputElement,rule){
       var errorElement = inputElement.parentElement.querySelector(options.errorSelector);
-       
+        var errorMessage
       
-      var rules = selectorRules[rule.selector];
-      console.log(rules);
-      for(var i = 0; i < rules.length ; ++i){
-        errorMessage = rules[i](inputElement.value);
-      }
+         var rules = selectorRules[rule.selector];
+          for(var i = 0; i < rules.length ; ++i){
+          errorMessage = rules[i](inputElement.value);
+          if(errorMessage)
+            break;
+          // console.log(errorMessage);
+          }
 
       if(errorMessage){
-      errorElement.innerText = errorMessage;
-      inputElement.parentElement.classList.add("invalid")
+        errorElement.innerText = errorMessage;
+        inputElement.parentElement.classList.add("invalid")
       }
       else{ 
-      errorElement.innerText = ""
-      inputElement.parentElement.classList.remove("invalid")
+        errorElement.innerText = ""
+        inputElement.parentElement.classList.remove("invalid")
       }
+      return !errorMessage;
+      
   }
 
   //getElement of Form
   var formElement = document.querySelector(options.form);
   if(formElement){
-    options.rules.forEach((rule) =>{
-      
-        // Lưu lại các rule cho mỗi input
-        // if(Array.isArray(selectorRules[rule.selector])){
-        //   selectorRules[rule.selector].push(rule.test);
-        // }else{
-        //  selectorRules[rule.selector] = [rule.test];
-        // }
+    formElement.onsubmit = function(e){
+      e.preventDefault();
+
+      var isFormValid = true;
+      // Loop via rule and validate
+      options.rules.forEach((rule) =>{
         var inputElement = formElement.querySelector(rule.selector);
-        console.log(inputElement);
-        
+        var isValid = validate(inputElement,rule);
+        if(!isValid) 
+          isFormValid = false;
+      });
+      if(isFormValid){
+        if(typeof options.onSubmit === 'function'){
+           var enableInputs = formElement.querySelectorAll('[name]:not([diable])')
+           var formValues = Array.from(enableInputs).reduce(function(values, input){
+                  return (values[input.name] = input.value) && values
+           }, {})
+           options.onSubmit(formValues);
+        }
+      }
+       
+    }
+    options.rules.forEach((rule) =>{
+        console.log(rule.selector)
+        // Lưu lại các rule cho mỗi input
+        if(Array.isArray(selectorRules[rule.selector])){
+          selectorRules[rule.selector].push(rule.test);
+        }
+        else{
+          selectorRules[rule.selector] = [rule.test];
+        }
+       
+        var inputElement = formElement.querySelector(rule.selector);
         var errorElement = inputElement.parentElement.querySelector(options.errorSelector);
         if(inputElement){
           // xử lý trường hợp blur khỏi input
@@ -52,7 +79,7 @@ function Validator(options){
             }
         }
     });
-    console.log(selectorRules)
+     console.log(selectorRules)
   }
 }
 
@@ -93,7 +120,7 @@ Validator.isConfirmed = function (selector, getCofirmValue , message){
   return {
       selector: selector,
       test: function(value){
-          return value === getCofirmValue() ? undefined : (message || "Password không hợp lệ")
+          return value === getCofirmValue() ? undefined : (message || "Giá trị nhập vào không hợp lệ")
       } 
   };
 }
