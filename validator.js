@@ -3,16 +3,32 @@
 // Object `Validaor`
 function Validator(options){
 
+  function getParent(element,selector){
+    while(element.parentElement){
+      if(element.parentElement.matches(selector)){
+        return element.parentElement;
+      }
+      element = element.parentElement;
+    }
+  }
+
   //  var selectorRules = {};
   // validate function
   var selectorRules = {};
   function validate(inputElement,rule){
-      var errorElement = inputElement.parentElement.querySelector(options.errorSelector);
+      var errorElement = getParent(inputElement,options.formGroupSelector).querySelector(options.errorSelector);
         var errorMessage
       
          var rules = selectorRules[rule.selector];
           for(var i = 0; i < rules.length ; ++i){
-          errorMessage = rules[i](inputElement.value);
+          switch(inputElement.type){
+            case 'checkbox':
+            case 'radio':
+              errorMessage = rules[i](formElement.querySelector(rule.selector + ':checked'))
+              break;
+            default:
+              errorMessage = rules[i](inputElement.value);
+          }
           if(errorMessage)
             break;
           // console.log(errorMessage);
@@ -20,11 +36,11 @@ function Validator(options){
 
       if(errorMessage){
         errorElement.innerText = errorMessage;
-        inputElement.parentElement.classList.add("invalid")
+        getParent(inputElement,options.formGroupSelector).classList.add("invalid")
       }
       else{ 
         errorElement.innerText = ""
-        inputElement.parentElement.classList.remove("invalid")
+        getParent(inputElement,options.formGroupSelector).classList.remove("invalid")
       }
       return !errorMessage;
       
@@ -46,14 +62,14 @@ function Validator(options){
       });
       if(isFormValid){
         if(typeof options.onSubmit === 'function'){
-           var enableInputs = formElement.querySelectorAll('[name]:not([diable])')
-           var formValues = Array.from(enableInputs).reduce(function(values, input){
-                  return (values[input.name] = input.value) && values
+            var enableInputs = formElement.querySelectorAll('[name]:not([diable])')
+            var formValues = Array.from(enableInputs).reduce(function(values, input){
+                  values[input.name] = input.value
+                  return  values
            }, {})
            options.onSubmit(formValues);
         }
       }
-       
     }
     options.rules.forEach((rule) =>{
         console.log(rule.selector)
@@ -64,9 +80,9 @@ function Validator(options){
         else{
           selectorRules[rule.selector] = [rule.test];
         }
+        var errorElement = getParent(inputElement,options.formGroupSelector).querySelector(options.errorSelector);
        
         var inputElement = formElement.querySelector(rule.selector);
-        var errorElement = inputElement.parentElement.querySelector(options.errorSelector);
         if(inputElement){
           // xử lý trường hợp blur khỏi input
             inputElement.onblur = function(){
@@ -75,7 +91,7 @@ function Validator(options){
           // xử lý mỗi khi người dùng nhập vào input            
             inputElement.oninput =function(){
               errorElement.innerText = ""
-              inputElement.parentElement.classList.remove("invalid")
+              getParent(inputElement,options.formGroupSelector).classList.remove("invalid")
             }
         }
     });
@@ -91,7 +107,7 @@ Validator.isRequired = function (selector,message){
     return {
         selector: selector,
         test: function(value){
-          return value.trim() ? undefined : message|| "Vui lòng nhập trường này"
+          return value ? undefined : message|| "Vui lòng nhập trường này"
         }
     };
 }
@@ -116,11 +132,11 @@ Validator.minLength = function (selector,min, message){
 }
 
 
-Validator.isConfirmed = function (selector, getCofirmValue , message){
+Validator.isConfirmed = function (selector, getConfirmValue , message){
   return {
       selector: selector,
       test: function(value){
-          return value === getCofirmValue() ? undefined : (message || "Giá trị nhập vào không hợp lệ")
+          return value === getConfirmValue() ? undefined : (message || "Giá trị nhập vào không hợp lệ")
       } 
   };
 }

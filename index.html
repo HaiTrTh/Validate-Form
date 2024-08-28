@@ -17,7 +17,11 @@
   
       <div class="form-group">
         <label for="fullname" class="form-label">Tên đầy đủ</label>
-        <input id="fullname" name="fullname" type="text" placeholder="VD: Sơn Đặng" class="form-control">
+        <div>
+          <div>
+          <input id="fullname" name="fullname" type="text" placeholder="VD: Sơn Đặng" class="form-control">
+          </div>
+        </div>
         <span class="form-message"></span>
       </div>
   
@@ -38,6 +42,23 @@
         <input id="password_confirmation" name="password_confirmation" placeholder="Nhập lại mật khẩu" type="password" class="form-control">
         <span class="form-message"></span>
       </div>
+
+      <div class="form-group horizontal">
+        <label for="gender" class="form-label">Giới tính</label>
+        <div >
+          <input name="gender" type="radio" value="male" class="form-control">
+          Nam
+        </div>
+        <div >
+          <input name="gender" type="radio" value="female" class="form-control">
+          Nữ
+        </div>
+        <div >
+          <input name="gender" type="radio" value="orther" class="form-control">
+          Khác
+        </div>
+        <span class="form-message"></span>
+      </div>
   
       <button class="form-submit">Đăng ký</button>
     </form>
@@ -48,10 +69,12 @@
     Validator({
       form: '#form-1',
       errorSelector: ".form-message",
+      formGroupSelector :'.form-group',
       rules: [
         Validator.isRequired('#fullname',"Vui lòng nhập tên đầy đủ của bạn"),
         Validator.isRequired('#email'),
         Validator.isEmail('#email'),
+        Validator.isRequired('input[name="gender"]'),
         Validator.minLength('#password',6),
         Validator.isRequired('#password_confirmation'),
         Validator.isConfirmed('#password_confirmation', function(){
